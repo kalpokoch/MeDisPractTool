@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Download, RotateCcw, Save } from 'lucide-react';
+import { RotateCcw, Save } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -189,17 +189,8 @@ export function ResultsScreen({
             Retake assessment
           </Button>
           <Button className="w-full sm:flex-1" onClick={handleDownload}>
-            <Download className="w-4 h-4" />
-            Download as Excel
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full sm:flex-1"
-            disabled
-            title="Coming soon: MongoDB integration"
-          >
             <Save className="w-4 h-4" />
-            Save (coming soon)
+            Save
           </Button>
         </CardFooter>
       </Card>
