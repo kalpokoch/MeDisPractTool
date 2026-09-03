@@ -69,6 +69,8 @@ function App() {
       )}
       {stage === 'results' && (
         <ResultsScreen
+          demographics={demographics}
+          answers={answers}
           result={computeMeDisPractResult(answers)}
           onRetake={handleRetake}
         />

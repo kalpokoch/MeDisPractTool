@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { RotateCcw, Save } from 'lucide-react';
+import { Download, RotateCcw, Save } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -12,9 +12,17 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { MeDisPractCategory, MeDisPractResult } from '@/lib/medispract';
+import type {
+  MeDisPractAnswers,
+  MeDisPractCategory,
+  MeDisPractResult,
+} from '@/lib/medispract';
+import type { DemographicInfo } from '@/lib/demographics';
+import { downloadMeDisPractExcel } from '@/lib/exportExcel';
 
 interface ResultsScreenProps {
+  demographics: DemographicInfo;
+  answers: MeDisPractAnswers;
   result: MeDisPractResult;
   onRetake: () => void;
 }
@@ -80,12 +88,21 @@ function DomainBar({
   );
 }
 
-export function ResultsScreen({ result, onRetake }: ResultsScreenProps) {
+export function ResultsScreen({
+  demographics,
+  answers,
+  result,
+  onRetake,
+}: ResultsScreenProps) {
   const styles = CATEGORY_STYLES[result.category];
   const roundedIndex = Math.round(result.index);
 
   const circumference = 2 * Math.PI * 54;
   const offset = circumference * (1 - roundedIndex / 100);
+
+  const handleDownload = () => {
+    downloadMeDisPractExcel(demographics, answers, result);
+  };
 
   return (
     <motion.div
@@ -171,13 +188,18 @@ export function ResultsScreen({ result, onRetake }: ResultsScreenProps) {
             <RotateCcw className="w-4 h-4" />
             Retake assessment
           </Button>
+          <Button className="w-full sm:flex-1" onClick={handleDownload}>
+            <Download className="w-4 h-4" />
+            Download as Excel
+          </Button>
           <Button
+            variant="outline"
             className="w-full sm:flex-1"
             disabled
             title="Coming soon: MongoDB integration"
           >
             <Save className="w-4 h-4" />
-            Save result (coming soon)
+            Save (coming soon)
           </Button>
         </CardFooter>
       </Card>
