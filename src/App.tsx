@@ -3,6 +3,7 @@ import { IntroScreen } from '@/components/medispract/IntroScreen';
 import { DemographicsScreen } from '@/components/medispract/DemographicsScreen';
 import { SurveyScreen } from '@/components/medispract/SurveyScreen';
 import { ResultsScreen } from '@/components/medispract/ResultsScreen';
+import { AboutScreen } from '@/components/medispract/AboutScreen';
 import {
   EMPTY_ANSWERS,
   computeMeDisPractResult,
@@ -15,10 +16,13 @@ import {
   type DemographicInfo,
 } from '@/lib/demographics';
 
-type Stage = 'intro' | 'demographics' | 'survey' | 'results';
+type FlowStage = 'intro' | 'demographics' | 'survey' | 'results';
+type Stage = FlowStage | 'about';
 
 function App() {
   const [stage, setStage] = useState<Stage>('intro');
+  // Where "Back" returns to when leaving the About page.
+  const [returnStage, setReturnStage] = useState<FlowStage>('intro');
   const [demographics, setDemographics] = useState<DemographicInfo>(
     EMPTY_DEMOGRAPHICS
   );
@@ -48,6 +52,12 @@ function App() {
     setStage('intro');
   };
 
+  const openAbout = () => {
+    if (stage === 'about') return;
+    setReturnStage(stage);
+    setStage('about');
+  };
+
   return (
     <div className="min-h-screen bg-background py-8 px-4 sm:py-12">
       {stage === 'intro' && (
@@ -74,6 +84,21 @@ function App() {
           result={computeMeDisPractResult(answers)}
           onRetake={handleRetake}
         />
+      )}
+      {stage === 'about' && (
+        <AboutScreen onBack={() => setStage(returnStage)} />
+      )}
+
+      {stage !== 'about' && (
+        <footer className="max-w-2xl mx-auto mt-8 text-center">
+          <button
+            type="button"
+            onClick={openAbout}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+          >
+            About &amp; credits
+          </button>
+        </footer>
       )}
     </div>
   );

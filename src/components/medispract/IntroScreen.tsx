@@ -70,16 +70,10 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             ))}
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-3">
+        <CardFooter>
           <Button size="lg" className="w-full" onClick={onStart}>
             Start Assessment
           </Button>
-          <p className="text-xs text-muted-foreground text-center">
-            Developed by Dr. Sandip Mukhopadhyay, MBBS, MD, NFPM, FAIMER
-            Fellow — ICMR-National Institute for Research in Bacterial
-            Infections, Kolkata. Copyright protected; the tool must be
-            applied in full.
-          </p>
         </CardFooter>
       </Card>
     </motion.div>
