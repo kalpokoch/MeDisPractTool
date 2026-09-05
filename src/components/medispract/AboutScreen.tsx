@@ -94,7 +94,7 @@ export function AboutScreen({ onBack }: AboutScreenProps) {
               </span>
             </p>
             <p className="text-sm text-muted-foreground">
-              Computer Science graduate, Amity
+              Project Research Scientist, Amity Centre for AI
             </p>
             <p className="text-sm text-muted-foreground">
               <a
