@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Netlify
+.netlify
+deno.lock
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +26,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Credentials — never commit these (contains the MongoDB connection string)
+*.env
+!.env.example

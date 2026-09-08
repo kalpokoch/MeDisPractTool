@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { RotateCcw, Save } from 'lucide-react';
+import { CheckCircle2, CloudUpload, Loader2, RotateCcw, Save } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import type {
 } from '@/lib/medispract';
 import type { DemographicInfo } from '@/lib/demographics';
 import { downloadMeDisPractExcel } from '@/lib/exportExcel';
+import { ApiError, submitToDatabase } from '@/lib/api';
 
 interface ResultsScreenProps {
   demographics: DemographicInfo;
@@ -104,6 +106,25 @@ export function ResultsScreen({
     downloadMeDisPractExcel(demographics, answers, result);
   };
 
+  const [submitState, setSubmitState] = useState<
+    'idle' | 'submitting' | 'submitted' | 'error'
+  >('idle');
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmitToDatabase = async () => {
+    setSubmitState('submitting');
+    setSubmitError(null);
+    try {
+      await submitToDatabase(demographics, answers);
+      setSubmitState('submitted');
+    } catch (err) {
+      setSubmitState('error');
+      setSubmitError(
+        err instanceof ApiError ? err.message : 'Something went wrong.'
+      );
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -179,6 +200,11 @@ export function ResultsScreen({
             />
           </div>
         </CardContent>
+        {submitState === 'error' && submitError && (
+          <p className="text-xs text-destructive text-center px-6">
+            {submitError}
+          </p>
+        )}
         <CardFooter className="flex flex-col sm:flex-row gap-3">
           <Button
             variant="outline"
@@ -191,6 +217,27 @@ export function ResultsScreen({
           <Button className="w-full sm:flex-1" onClick={handleDownload}>
             <Save className="w-4 h-4" />
             Save
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full sm:flex-1"
+            onClick={handleSubmitToDatabase}
+            disabled={submitState === 'submitting' || submitState === 'submitted'}
+          >
+            {submitState === 'submitting' && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
+            {submitState === 'submitted' && (
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+            )}
+            {(submitState === 'idle' || submitState === 'error') && (
+              <CloudUpload className="w-4 h-4" />
+            )}
+            {submitState === 'submitted'
+              ? 'Submitted'
+              : submitState === 'submitting'
+                ? 'Submitting…'
+                : 'Submit to database'}
           </Button>
         </CardFooter>
       </Card>
