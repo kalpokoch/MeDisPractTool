@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, CloudUpload, Loader2, RotateCcw, Save } from 'lucide-react';
+import { RotateCcw, Save } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -20,7 +20,9 @@ import type {
 } from '@/lib/medispract';
 import type { DemographicInfo } from '@/lib/demographics';
 import { downloadMeDisPractExcel } from '@/lib/exportExcel';
-import { ApiError, submitToDatabase } from '@/lib/api';
+import { submitToDatabase } from '@/lib/api';
+
+const RETRY_DELAY_MS = 3000;
 
 interface ResultsScreenProps {
   demographics: DemographicInfo;
@@ -106,24 +108,37 @@ export function ResultsScreen({
     downloadMeDisPractExcel(demographics, answers, result);
   };
 
-  const [submitState, setSubmitState] = useState<
-    'idle' | 'submitting' | 'submitted' | 'error'
-  >('idle');
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  // Saves to the database automatically as soon as the result is shown —
+  // no button, no visible status. One silent retry on failure; the Excel
+  // download remains the user-facing fallback if both attempts fail.
+  const hasSubmittedRef = useRef(false);
+  useEffect(() => {
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
 
-  const handleSubmitToDatabase = async () => {
-    setSubmitState('submitting');
-    setSubmitError(null);
-    try {
-      await submitToDatabase(demographics, answers);
-      setSubmitState('submitted');
-    } catch (err) {
-      setSubmitState('error');
-      setSubmitError(
-        err instanceof ApiError ? err.message : 'Something went wrong.'
-      );
-    }
-  };
+    let cancelled = false;
+
+    const attempt = async (isRetry: boolean) => {
+      try {
+        await submitToDatabase(demographics, answers);
+      } catch {
+        if (!isRetry && !cancelled) {
+          setTimeout(() => {
+            if (!cancelled) attempt(true);
+          }, RETRY_DELAY_MS);
+        }
+      }
+    };
+
+    attempt(false);
+
+    return () => {
+      cancelled = true;
+    };
+    // Runs once when the result first appears — demographics/answers are
+    // fixed for the lifetime of this screen (a retake unmounts it).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <motion.div
@@ -200,11 +215,6 @@ export function ResultsScreen({
             />
           </div>
         </CardContent>
-        {submitState === 'error' && submitError && (
-          <p className="text-xs text-destructive text-center px-6">
-            {submitError}
-          </p>
-        )}
         <CardFooter className="flex flex-col sm:flex-row gap-3">
           <Button
             variant="outline"
@@ -217,27 +227,6 @@ export function ResultsScreen({
           <Button className="w-full sm:flex-1" onClick={handleDownload}>
             <Save className="w-4 h-4" />
             Save
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full sm:flex-1"
-            onClick={handleSubmitToDatabase}
-            disabled={submitState === 'submitting' || submitState === 'submitted'}
-          >
-            {submitState === 'submitting' && (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            )}
-            {submitState === 'submitted' && (
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-            )}
-            {(submitState === 'idle' || submitState === 'error') && (
-              <CloudUpload className="w-4 h-4" />
-            )}
-            {submitState === 'submitted'
-              ? 'Submitted'
-              : submitState === 'submitting'
-                ? 'Submitting…'
-                : 'Submit to database'}
           </Button>
         </CardFooter>
       </Card>
