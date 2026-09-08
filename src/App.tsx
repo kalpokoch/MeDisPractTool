@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { IntroScreen } from '@/components/medispract/IntroScreen';
 import { DemographicsScreen } from '@/components/medispract/DemographicsScreen';
 import { SurveyScreen } from '@/components/medispract/SurveyScreen';
@@ -11,7 +11,7 @@ import {
   type MeDisPractAnswers,
 } from '@/lib/medispract';
 import {
-  EMPTY_DEMOGRAPHICS,
+  createEmptyDemographics,
   isDemographicsComplete,
   type DemographicInfo,
 } from '@/lib/demographics';
@@ -24,13 +24,14 @@ function App() {
   // Where "Back" returns to when leaving the About page.
   const [returnStage, setReturnStage] = useState<FlowStage>('intro');
   const [demographics, setDemographics] = useState<DemographicInfo>(
-    EMPTY_DEMOGRAPHICS
+    createEmptyDemographics
   );
   const [answers, setAnswers] = useState<MeDisPractAnswers>(EMPTY_ANSWERS);
 
-  const updateDemographics = (patch: Partial<DemographicInfo>) => {
+  // Stable identity: the demographics form keeps a timer keyed on this.
+  const updateDemographics = useCallback((patch: Partial<DemographicInfo>) => {
     setDemographics((prev) => ({ ...prev, ...patch }));
-  };
+  }, []);
 
   const updateAnswers = (patch: Partial<MeDisPractAnswers>) => {
     setAnswers((prev) => ({ ...prev, ...patch }));
@@ -47,7 +48,7 @@ function App() {
   };
 
   const handleRetake = () => {
-    setDemographics(EMPTY_DEMOGRAPHICS);
+    setDemographics(createEmptyDemographics());
     setAnswers(EMPTY_ANSWERS);
     setStage('intro');
   };

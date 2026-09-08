@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { DemographicInfo } from '@/lib/demographics';
+import { formatDateDisplay, type DemographicInfo } from '@/lib/demographics';
 import {
   DISPOSAL_METHODS,
   type MeDisPractAnswers,
@@ -53,14 +53,17 @@ export function buildMeDisPractWorkbook(
 
   const demoRows = [
     ['Field', 'Value'],
-    ['Name of the village', demographics.village],
-    ['Block', demographics.block],
-    ['District', demographics.district],
+    ['Date', formatDateDisplay(demographics.date)],
+    ['Sl. No.', demographics.slNo],
     ['State', demographics.state],
+    ['District', demographics.district],
+    ['Village', demographics.village],
+    ['Town', demographics.town],
+    ['City', demographics.city],
     ['Household No.', demographics.householdNo],
     ["Respondent's name", demographics.respondentName],
-    ['Head of family', demographics.isHeadOfFamily === 'yes' ? 'Yes' : 'No'],
     ['Age', demographics.age ?? ''],
+    ['Head of family', demographics.isHeadOfFamily === 'yes' ? 'Yes' : 'No'],
   ];
   const demoSheet = XLSX.utils.aoa_to_sheet(demoRows);
   demoSheet['!cols'] = [{ wch: 22 }, { wch: 30 }];
